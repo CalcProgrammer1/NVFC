@@ -5,6 +5,7 @@
 
 typedef int32_t NV_S32;
 typedef uint32_t NV_U32;
+typedef uint8_t NV_U8;
 
 typedef NV_S32* NV_HANDLE;
 typedef NV_HANDLE NV_PHYSICAL_GPU_HANDLE;
@@ -198,6 +199,16 @@ enum class NV_THERMAL_TARGET : NV_S32 {
 	UNKNOWN      = -1
 };
 
+enum class NV_I2C_SPEED : NV_U32 {
+	NVAPI_I2C_SPEED_DEFAULT,
+	NVAPI_I2C_SPEED_3KHZ,
+	NVAPI_I2C_SPEED_10KHZ,
+	NVAPI_I2C_SPEED_33KHZ,
+	NVAPI_I2C_SPEED_100KHZ,
+	NVAPI_I2C_SPEED_200KHZ,
+	NVAPI_I2C_SPEED_400KHZ
+};
+
 struct NV_GPU_THERMAL_SETTINGS_V2 {
 	NV_GPU_THERMAL_SETTINGS_V2();
 	NV_U32 version;
@@ -279,6 +290,22 @@ struct NV_DISPLAY_DRIVER_VERSION_V1 {
 	NV_U32 : 32;                  // NOTE(dweiler): unknown vaue
 	NV_SHORT_STRING build_branch;
 	NV_SHORT_STRING adapter;
+};
+
+struct NV_I2C_INFO_V3 {
+	NV_I2C_INFO_V3();
+	NV_U32 version;
+	NV_U32 display_mask;
+	NV_U8 is_ddc_port;
+	NV_U8 i2c_dev_address;
+	NV_U8* i2c_reg_address;
+	NV_U32 reg_addr_size;
+	NV_U8* data;
+	NV_U32 size;
+	NV_U32 i2c_speed;
+	NV_I2C_SPEED i2c_speed_khz;
+	NV_U8 port_id;
+	NV_U32 is_port_id_set;
 };
 
 // Interface: 0150E828
@@ -424,4 +451,15 @@ NV_STATUS NvAPI_GPU_GetPCIIdentifiers(
 	NV_U32 *revision_id,
 	NV_U32 *ext_device_id);
 
+// Interface: 283AC65A
+NV_STATUS NvAPI_I2CWriteEx(
+	NV_PHYSICAL_GPU_HANDLE physical_gpu_handle,
+	NV_I2C_INFO_V3 *i2c_info,
+	NV_U32 *unknown);
+
+// Interface: 4D7B0709
+NV_STATUS NvAPI_I2CReadEx(
+	NV_PHYSICAL_GPU_HANDLE physical_gpu_handle,
+	NV_I2C_INFO_V3* i2c_info,
+	NV_U32 *unknown);
 #endif

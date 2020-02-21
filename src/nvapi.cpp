@@ -94,6 +94,12 @@ NV_DISPLAY_DRIVER_VERSION_V1::NV_DISPLAY_DRIVER_VERSION_V1()
 	version = NV_STRUCT_VERSION(NV_DISPLAY_DRIVER_VERSION_V1, 1);
 }
 
+NV_I2C_INFO_V3::NV_I2C_INFO_V3()
+{
+	memset(this, 0, sizeof * this);
+	version = NV_STRUCT_VERSION(NV_I2C_INFO_V3, 3);
+}
+
 // Interface: 0150E828
 static NV_STATUS (*pNvAPI_Initialize)();
 
@@ -221,6 +227,18 @@ static NV_STATUS (*pNvAPI_GPU_GetPCIIdentifiers)(
 	NV_U32 *revision_id,
 	NV_U32 *ext_device_id);
 
+// Interface: 283AC65A
+static NV_STATUS (*pNvAPI_I2CWriteEx)(
+	NV_PHYSICAL_GPU_HANDLE physical_gpu_handle,
+	NV_I2C_INFO_V3* i2c_info,
+	NV_U32 *unknown);
+
+// Interface: 4D7B0709
+static NV_STATUS(*pNvAPI_I2CReadEx)(
+	NV_PHYSICAL_GPU_HANDLE physical_gpu_handle,
+	NV_I2C_INFO_V3* i2c_info,
+	NV_U32 *unknown);
+
 static bool QueryInterfaceOpaque(FARPROC query_interface, NV_U32 id, void **result)
 {
 	void *address = ((void *(*)(NV_U32))query_interface)(id);
@@ -271,6 +289,9 @@ static void QueryInterfaces(FARPROC query_interface)
 	QueryInterface(query_interface, 0xDA141340, NvAPI_GPU_GetCoolerSettings);
 	QueryInterface(query_interface, 0x891FA0AE, NvAPI_GPU_SetCoolerLevels); 
 	QueryInterface(query_interface, 0x2DDFB66E, NvAPI_GPU_GetPCIIdentifiers);
+
+	QueryInterface(query_interface, 0x283AC65A, NvAPI_I2CWriteEx);
+	QueryInterface(query_interface, 0x4D7B0709, NvAPI_I2CReadEx);
 }
 
 NV_STATUS NvAPI_Initialize()
@@ -516,5 +537,25 @@ NV_STATUS NvAPI_GPU_GetPCIIdentifiers(
 {
 	return pNvAPI_GPU_GetPCIIdentifiers
 		? (*pNvAPI_GPU_GetPCIIdentifiers)(physical_gpu_handle, device_id, sub_system_id, revision_id, ext_device_id)
+		: -1;
+}
+
+NV_STATUS NvAPI_I2CWriteEx(
+	NV_PHYSICAL_GPU_HANDLE physical_gpu_handle,
+	NV_I2C_INFO_V3* i2c_info,
+	NV_U32 *unknown)
+{
+	return pNvAPI_I2CWriteEx
+		? (*pNvAPI_I2CWriteEx)(physical_gpu_handle, i2c_info, unknown)
+		: -1;
+}
+
+NV_STATUS NvAPI_I2CReadEx(
+	NV_PHYSICAL_GPU_HANDLE physical_gpu_handle,
+	NV_I2C_INFO_V3* i2c_info,
+	NV_U32 *unknown)
+{
+	return pNvAPI_I2CReadEx
+		? (*pNvAPI_I2CReadEx)(physical_gpu_handle, i2c_info, unknown)
 		: -1;
 }
